@@ -1,0 +1,23 @@
+.tooltip-container {
+  position: absolute;
+  background-color: white;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Box shadow */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 300px;
+}
+
+.tooltip-text {
+  color: red;
+  font-size: 30px;
+}
+
+.tooltip-image {
+  display: block;
+  width: 100px; /* Adjust size as needed */
+  margin-top: 10px;
+}
