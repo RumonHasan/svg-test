@@ -10,8 +10,13 @@ export const Images = {
   Tokyo: Tokyo,
 };
 
+// original color fills
 export const original_fills = {
-  'JP-HK-1': 'rgb(100%,52.156863%,52.156863%)',
+  Hokkaido: 'rgb(100%,52.156863%,52.156863%)',
+  Tohoku: 'rgb(100%,98.431373%,56.862745%)',
+  Kanto: 'rgb(47.45098%,100%,46.27451%)',
+  Chubu: 'rgb(54.509804%,100%,90.980392%)',
+  Shikoku: 'rgb(44.705882%,44.705882%,100%)',
 };
 
 // custom label ref for text tooltip
@@ -51,43 +56,35 @@ const SVGApproach = () => {
     y_pos: 0,
   });
 
-  // setting the svg data to map
-  useEffect(() => {
-    if (jpSvg) {
-      setMap(jpSvg);
-    }
-  }, []);
-
   // custom modificatio of svg map
   const getSvgInjectionElements = (svg) => {
     const paths = svg.querySelectorAll('path');
     // extracting the paths and adding colors
     let path_collection = [];
     const path_map = new Map();
-    const original_path_map_colors = new Map();
     for (let pathIndex = 0; pathIndex < paths.length; pathIndex++) {
       const current_path = paths[pathIndex];
       const pref_title = current_path.getAttribute('title');
       if (pref_title !== '') {
-        const pref_id = current_path.id;
-        const original_color = original_fills[pref_id];
-        console.log(original_color);
-        original_path_map_colors.set(pref_id, original_fills[pref_id]);
-        path_map.set(pref_id, pref_title);
+        path_map.set(pref_title, pref_title);
         path_collection.push(current_path);
       }
     }
-    // modify each path
-    console.log(path_collection);
     path_collection.forEach((path) => {
-      const path_id = path.id;
+      // variables
+      const pref_title = path.getAttribute('title');
+      // general designs
       path.style.cursor = 'pointer';
+      path.style.transition = 'fill 0.3s';
+      // adding the hover effects
       path.addEventListener('mouseover', () => {
         path.style.fill = 'red';
       });
+      // resetting to original colors
       path.addEventListener('mouseout', () => {
-        console.log(original_path_map_colors.get(path_id));
-        path.style.fill = `${original_path_map_colors.get(path_id)}`; // Set fill color back to original
+        //fetches back the original colors from the original color array
+        const original_path_color = original_fills[path_map.get(pref_title)];
+        path.style.fill = `${original_path_color}`;
       });
     });
   };
