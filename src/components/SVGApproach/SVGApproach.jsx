@@ -9,6 +9,11 @@ import Tokyo from './images/Tokyo.png';
 export const Images = {
   Tokyo: Tokyo,
 };
+
+export const original_fills = {
+  'JP-HK-1': 'rgb(100%,52.156863%,52.156863%)',
+};
+
 // custom label ref for text tooltip
 // eslint-disable-next-line react/prop-types, react/display-name
 const CustomToolTip = memo(({ pref_label, x_pos, y_pos }) => {
@@ -59,19 +64,30 @@ const SVGApproach = () => {
     // extracting the paths and adding colors
     let path_collection = [];
     const path_map = new Map();
+    const original_path_map_colors = new Map();
     for (let pathIndex = 0; pathIndex < paths.length; pathIndex++) {
       const current_path = paths[pathIndex];
       const pref_title = current_path.getAttribute('title');
       if (pref_title !== '') {
         const pref_id = current_path.id;
+        const original_color = original_fills[pref_id];
+        console.log(original_color);
+        original_path_map_colors.set(pref_id, original_fills[pref_id]);
         path_map.set(pref_id, pref_title);
         path_collection.push(current_path);
       }
     }
     // modify each path
+    console.log(path_collection);
     path_collection.forEach((path) => {
+      const path_id = path.id;
+      path.style.cursor = 'pointer';
       path.addEventListener('mouseover', () => {
         path.style.fill = 'red';
+      });
+      path.addEventListener('mouseout', () => {
+        console.log(original_path_map_colors.get(path_id));
+        path.style.fill = `${original_path_map_colors.get(path_id)}`; // Set fill color back to original
       });
     });
   };
