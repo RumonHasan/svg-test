@@ -1,6 +1,6 @@
 import { ReactSVG } from 'react-svg';
 import './styles.css';
-import { useState, useEffect, useRef, memo, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 // main svg import
 import jpSvg from '../../assets/jp_2.svg';
 // images of regions
@@ -50,31 +50,12 @@ const darken_rgb_vals = (rgbColor, darkeningFactor) => {
   return `rgb(${r}%, ${newG}%, ${newB}%)`;
 };
 
-// custom label ref for text tooltip
-// eslint-disable-next-line react/prop-types, react/display-name
-const CustomToolTip = ({ pref_label }) => {
-  const tooltipRef = useRef();
-
-  return (
-    <div
-      ref={tooltipRef}
-      style={{ color: 'red', fontSize: '30px' }}
-      className="tooltip-container"
-    >
-      <span>{pref_label}</span>
-      <img src={Images[pref_label]} height={100} width={300} alt="Pref" />
-    </div>
-  );
-};
-
 // cusom svg approach
 const SVGApproach = () => {
   const [map, setMap] = useState(jpSvg);
   const mapRef = useRef();
   // data to update tooltip data
-  const [tooltipData, setToolTipData] = useState({
-    prefLabel: 'Kanto',
-  });
+  const [pref, setPref] = useState('');
 
   // custom modificatio of svg map
   const getSvgInjectionElements = useCallback((svg) => {
@@ -119,6 +100,7 @@ const SVGApproach = () => {
         path.style.stroke = 'black'; // Add a black border
         path.style.strokeWidth = '2px';
         // need to update the custom tooltip in mouseover function only
+        // setPref(pref_title);
       });
       // resetting to original colors
       path.addEventListener('mouseout', () => {
@@ -147,12 +129,6 @@ const SVGApproach = () => {
           fallback={() => <span>Error!</span>}
           // style={{ transform: 'scale(0.5)', transformOrigin: 'top left' }}
         />
-      </div>
-
-      <div>
-        {tooltipData.prefLabel !== '' && (
-          <CustomToolTip pref_label={tooltipData.prefLabel} />
-        )}
       </div>
     </div>
   );
