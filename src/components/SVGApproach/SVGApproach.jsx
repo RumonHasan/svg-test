@@ -1,13 +1,27 @@
-import { useState, useEffect, useRef, memo } from 'react';
-import jpSvg from '../../assets/jp_2.svg';
-
 import { ReactSVG } from 'react-svg';
 import './styles.css';
-// images for pref
-import Tokyo from './images/Tokyo.png';
+import { useState, useEffect, useRef, memo, useCallback } from 'react';
+// main svg import
+import jpSvg from '../../assets/jp_2.svg';
+// images of regions
+import Chubu from './images/Chubu.jpeg';
+import Chugoku from './images/Chugoku.jpeg';
+import Hokkaido from './images/Hokkaido.jpeg';
+import Kansai from './images/Kansai.jpeg';
+import Kanto from './images/Kanto.jpeg';
+import Kyushu from './images/Kyushu.jpeg';
+import Shikoku from './images/Shikoku.jpeg';
+import Tohoku from './images/Tohoku.jpeg';
 
 export const Images = {
-  Tokyo: Tokyo,
+  Chubu: Chubu,
+  Chugoku: Chugoku,
+  Hokkaido: Hokkaido,
+  Kansai: Kansai,
+  Kanto: Kanto,
+  Kyushu: Kyushu,
+  Shikoku: Shikoku,
+  Tohoku: Tohoku,
 };
 
 // original color fills
@@ -16,22 +30,30 @@ export const original_fills = {
   Tohoku: 'rgb(100%,98.431373%,56.862745%)',
   Kanto: 'rgb(47.45098%,100%,46.27451%)',
   Chubu: 'rgb(54.509804%,100%,90.980392%)',
-  Shikoku: 'rgb(44.705882%,44.705882%,100%)',
+  Chugoku: 'rgb(100%,56.862745%,28.235294%)',
+  Kansai: 'rgb(44.705882%,44.705882%,100%)',
+  Shikoku: 'rgb(81.960784%,43.137255%,100%)',
+  Kyushu: 'rgb(77.254902%,77.254902%,77.254902%)',
+  Okinawa: 'rgb(7.254902%,77.254902%,77.254902%)',
+};
+
+// make rgb lighter
+const darken_rgb_vals = (rgbColor, darkeningFactor) => {
+  const [r, g, b] = rgbColor
+    .replace(/[^\d.,]/g, '')
+    .split(',')
+    .map(Number);
+
+  const newG = Math.max(g - darkeningFactor * 100, 0);
+  const newB = Math.max(b - darkeningFactor * 100, 0);
+
+  return `rgb(${r}%, ${newG}%, ${newB}%)`;
 };
 
 // custom label ref for text tooltip
 // eslint-disable-next-line react/prop-types, react/display-name
-const CustomToolTip = memo(({ pref_label, x_pos, y_pos }) => {
+const CustomToolTip = ({ pref_label }) => {
   const tooltipRef = useRef();
-
-  useEffect(() => {
-    if (tooltipRef.current) {
-      const tooltip = tooltipRef.current;
-      tooltip.style.left = `${x_pos + 10}px`;
-      tooltip.style.top = `${y_pos + 10}px`;
-    }
-  }, [x_pos, y_pos]);
-  console.log(pref_label);
 
   return (
     <div
@@ -43,7 +65,7 @@ const CustomToolTip = memo(({ pref_label, x_pos, y_pos }) => {
       <img src={Images[pref_label]} height={100} width={300} alt="Pref" />
     </div>
   );
-});
+};
 
 // cusom svg approach
 const SVGApproach = () => {
@@ -51,14 +73,13 @@ const SVGApproach = () => {
   const mapRef = useRef();
   // data to update tooltip data
   const [tooltipData, setToolTipData] = useState({
-    prefLabel: '',
-    x_pos: 0,
-    y_pos: 0,
+    prefLabel: 'Kanto',
   });
 
   // custom modificatio of svg map
-  const getSvgInjectionElements = (svg) => {
+  const getSvgInjectionElements = useCallback((svg) => {
     const paths = svg.querySelectorAll('path');
+    let current_selected_path = null;
     // extracting the paths and adding colors
     let path_collection = [];
     const path_map = new Map();
@@ -70,24 +91,45 @@ const SVGApproach = () => {
         path_collection.push(current_path);
       }
     }
+    // filtered paths
     path_collection.forEach((path) => {
       // variables
       const pref_title = path.getAttribute('title');
+      const original_path_color = original_fills[path_map.get(pref_title)];
+      const original_path_color_darkened = darken_rgb_vals(
+        original_path_color,
+        0.5
+      );
       // general designs
       path.style.cursor = 'pointer';
-      path.style.transition = 'fill 0.3s';
+      path.style.transition = 'fill 0.3s, stroke 0.3s';
       // adding the hover effects
       path.addEventListener('mouseover', () => {
-        path.style.fill = 'red';
+        // remains the same selected color unless hovered over another region
+        if (current_selected_path) {
+          const current_path_title =
+            current_selected_path.getAttribute('title');
+          current_selected_path.style.fill = `${
+            original_fills[path_map.get(current_path_title)]
+          }`;
+          current_selected_path.style.stroke = 'none';
+        }
+        current_selected_path = path;
+        path.style.fill = `${original_path_color_darkened}`;
+        path.style.stroke = 'black'; // Add a black border
+        path.style.strokeWidth = '2px';
+        // need to update the custom tooltip in mouseover function only
       });
       // resetting to original colors
       path.addEventListener('mouseout', () => {
         //fetches back the original colors from the original color array
-        const original_path_color = original_fills[path_map.get(pref_title)];
-        path.style.fill = `${original_path_color}`;
+        if (path !== current_selected_path) {
+          path.style.fill = `${original_path_color}`;
+          path.style.stroke = 'none';
+        }
       });
     });
-  };
+  }, []);
 
   return (
     <div style={{ height: '100%', width: '100%', position: 'relative' }}>
@@ -108,13 +150,9 @@ const SVGApproach = () => {
       </div>
 
       <div>
-        {/* {tooltipData.prefLabel !== '' && (
-          <CustomToolTip
-            pref_label={tooltipData.prefLabel}
-            x_pos={tooltipData.x_pos}
-            y_pos={tooltipData.y_pos}
-          />
-        )} */}
+        {tooltipData.prefLabel !== '' && (
+          <CustomToolTip pref_label={tooltipData.prefLabel} />
+        )}
       </div>
     </div>
   );
