@@ -1,6 +1,6 @@
 import { ReactSVG } from 'react-svg';
 import './styles.css';
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 // main svg import
 import jpSvg from '../../assets/jp_2.svg';
 // images of regions
@@ -52,10 +52,12 @@ const darken_rgb_vals = (rgbColor, darkeningFactor) => {
 
 // cusom svg approach
 const SVGApproach = () => {
-  const [map, setMap] = useState(jpSvg);
   const mapRef = useRef();
   // data to update tooltip data
-  const [pref, setPref] = useState('');
+  const tooltipRef = useRef('Kanto');
+
+  // jumps to the desired page
+  const jump_to_page = (region) => {};
 
   // custom modificatio of svg map
   const getSvgInjectionElements = useCallback((svg) => {
@@ -99,8 +101,26 @@ const SVGApproach = () => {
         path.style.fill = `${original_path_color_darkened}`;
         path.style.stroke = 'black'; // Add a black border
         path.style.strokeWidth = '2px';
-        // need to update the custom tooltip in mouseover function only
-        // setPref(pref_title);
+        // updating the tooltip ref directly to prevent rerender
+        tooltipRef.current.textContent = pref_title;
+        // adding an img
+        const tooltip_img = document.createElement('img');
+        tooltip_img.src = Images[pref_title];
+        tooltip_img.alt = pref_title;
+        tooltip_img.style.height = '95%';
+        tooltip_img.style.width = '100%';
+        tooltip_img.style.borderBottomLeftRadius = '5px';
+        tooltip_img.style.borderBottomRightRadius = '5px';
+        tooltipRef.current.appendChild(tooltip_img);
+        // show tooltip
+        // Show the tooltip with a fade-in transition
+        tooltipRef.current.style.opacity = '1';
+        tooltipRef.current.style.visibility = 'visible';
+
+        // adding event listener to tooltip
+        tooltipRef.addEventListener('click', () => {
+          jump_to_page(pref_title);
+        });
       });
       // resetting to original colors
       path.addEventListener('mouseout', () => {
@@ -113,22 +133,29 @@ const SVGApproach = () => {
     });
   }, []);
 
+  useEffect(() => {
+    if (tooltipRef.current) {
+      tooltipRef.current.style.opacity = '0';
+      tooltipRef.current.style.visibility = 'hidden';
+      tooltipRef.current.style.transition = 'opacity 0.3s ease-in-out';
+    }
+  }, []);
+
   return (
     <div style={{ height: '100%', width: '100%', position: 'relative' }}>
-      <div
-        style={{
-          position: 'relative',
-          width: '200px',
-        }}
-      >
+      <div>
         <ReactSVG
           ref={mapRef}
           beforeInjection={(svg) => getSvgInjectionElements(svg)}
-          src={map}
+          src={jpSvg}
           useRequestCache={false}
           fallback={() => <span>Error!</span>}
           // style={{ transform: 'scale(0.5)', transformOrigin: 'top left' }}
         />
+      </div>
+
+      <div ref={tooltipRef} className="tooltip-container">
+        <span>Kanto</span>
       </div>
     </div>
   );
