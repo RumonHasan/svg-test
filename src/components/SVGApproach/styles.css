@@ -1,8 +1,13 @@
+.svg-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .tooltip-container {
   position: absolute;
   top: 0;
   background-color: white;
-  border-radius: 5px;
+  border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5); /* Box shadow */
   display: flex;
   flex-direction: column;

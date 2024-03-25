@@ -1,6 +1,6 @@
 import { ReactSVG } from 'react-svg';
 import './styles.css';
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback, useEffect, useState } from 'react';
 // main svg import
 import jpSvg from '../../assets/jp_2.svg';
 // images of regions
@@ -55,6 +55,7 @@ const SVGApproach = () => {
   const mapRef = useRef();
   // data to update tooltip data
   const tooltipRef = useRef('Kanto');
+  const [screenWidth, setScreenWidth] = useState(window.innerWidth);
 
   // jumps to the desired page
   const jump_to_page = (region) => {};
@@ -101,24 +102,31 @@ const SVGApproach = () => {
         path.style.fill = `${original_path_color_darkened}`;
         path.style.stroke = 'black'; // Add a black border
         path.style.strokeWidth = '2px';
-        // updating the tooltip ref directly to prevent rerender
-        tooltipRef.current.textContent = pref_title;
+        // reseting the tooltip
+        tooltipRef.current.innerHTML = '';
+
         // adding an img
         const tooltip_img = document.createElement('img');
         tooltip_img.src = Images[pref_title];
         tooltip_img.alt = pref_title;
         tooltip_img.style.height = '95%';
         tooltip_img.style.width = '100%';
-        tooltip_img.style.borderBottomLeftRadius = '5px';
-        tooltip_img.style.borderBottomRightRadius = '5px';
+        tooltip_img.style.borderTopLeftRadius = '8px';
+        tooltip_img.style.borderTopRightRadius = '8px';
         tooltipRef.current.appendChild(tooltip_img);
+
+        // adding text
+        const tooltip_text = document.createElement('span');
+        tooltip_text.textContent = pref_title;
+        tooltipRef.current.appendChild(tooltip_text);
+
         // show tooltip
         // Show the tooltip with a fade-in transition
         tooltipRef.current.style.opacity = '1';
         tooltipRef.current.style.visibility = 'visible';
 
         // adding event listener to tooltip
-        tooltipRef.addEventListener('click', () => {
+        tooltipRef.current.addEventListener('click', () => {
           jump_to_page(pref_title);
         });
       });
@@ -133,6 +141,32 @@ const SVGApproach = () => {
     });
   }, []);
 
+  // svg width and height adjustments after screen resize
+  const getSvgAfterInjectionElements = (svg) => {
+    if (screenWidth < 800 || screenWidth >= 800) {
+      svg.style.width = `${screenWidth}px`;
+      svg.style.height = `${screenWidth}px`;
+    }
+  };
+  // resize
+  useEffect(() => {
+    const handleResize = () => {
+      const innerWidth = window.innerWidth;
+      if (innerWidth < 800) {
+        setScreenWidth(600);
+      }
+      // resetting screen width
+      if (innerWidth >= 800) {
+        setScreenWidth(800);
+      }
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   useEffect(() => {
     if (tooltipRef.current) {
       tooltipRef.current.style.opacity = '0';
@@ -142,21 +176,22 @@ const SVGApproach = () => {
   }, []);
 
   return (
-    <div style={{ height: '100%', width: '100%', position: 'relative' }}>
+    <div
+      style={{ height: '100%', width: '100%', position: 'relative' }}
+      className="svg-container"
+    >
       <div>
         <ReactSVG
           ref={mapRef}
           beforeInjection={(svg) => getSvgInjectionElements(svg)}
+          afterInjection={(svg) => getSvgAfterInjectionElements(svg)}
           src={jpSvg}
           useRequestCache={false}
           fallback={() => <span>Error!</span>}
-          // style={{ transform: 'scale(0.5)', transformOrigin: 'top left' }}
         />
       </div>
 
-      <div ref={tooltipRef} className="tooltip-container">
-        <span>Kanto</span>
-      </div>
+      <div ref={tooltipRef} className="tooltip-container"></div>
     </div>
   );
 };
