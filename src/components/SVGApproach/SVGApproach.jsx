@@ -3,6 +3,7 @@ import './styles.css';
 import { useRef, useCallback, useEffect, useState } from 'react';
 // main svg import
 import jpSvg from '../../assets/jp_2.svg';
+import jpRegionsSvg from '../../assets/jp_regions_file.svg';
 // images of regions
 import Chubu from './images/Chubu.jpeg';
 import Chugoku from './images/Chugoku.jpeg';
@@ -185,7 +186,7 @@ const SVGApproach = () => {
           ref={mapRef}
           beforeInjection={(svg) => getSvgInjectionElements(svg)}
           afterInjection={(svg) => getSvgAfterInjectionElements(svg)}
-          src={jpSvg}
+          src={jpRegionsSvg}
           useRequestCache={false}
           fallback={() => <span>Error!</span>}
         />
